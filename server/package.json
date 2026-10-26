@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "seed": "node src/seed/seedUsers.js"
+    "seed": "node src/seed/seedAll.js",
+    "test": "node src/tests/testEligibility.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
