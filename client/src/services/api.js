@@ -101,5 +101,19 @@ export const api = {
   // Placement Stats
   getStats: () => request('/stats', { method: 'GET' }),
   createStat: (data) => request('/stats', { method: 'POST', body: JSON.stringify(data) }),
-  updateStat: (id, data) => request(`/stats/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+  updateStat: (id, data) => request(`/stats/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Admin Portal
+  getAdminDashboard: () => request('/dashboard/admin', { method: 'GET' }),
+  getUsers: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/users${query ? `?${query}` : ''}`, { method: 'GET' });
+  },
+  updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+  toggleUserStatus: (id, isActive) => request(`/admin/users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) }),
+  createOfficerAccount: (data) => request('/admin/users/officer', { method: 'POST', body: JSON.stringify(data) }),
+  getAuditLogs: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/audit${query ? `?${query}` : ''}`, { method: 'GET' });
+  }
 };

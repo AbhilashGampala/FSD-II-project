@@ -5,6 +5,7 @@ import Offer from '../models/Offer.js';
 import Company from '../models/Company.js';
 import Stat from '../models/Stat.js';
 import User from '../models/User.js';
+import AuditLog from '../models/AuditLog.js';
 import { checkEligibility } from '../utils/eligibility.js';
 import { calculateCompleteness } from './profileController.js';
 
@@ -152,3 +153,76 @@ export const getStudentDashboard = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET /api/dashboard/admin - Institutional summary analytics and recent audit logs
+export const getAdminDashboard = async (req, res, next) => {
+  try {
+    const [
+      totalUsers,
+      studentCount,
+      officerCount,
+      adminCount,
+      activeUsers,
+      deactivatedUsers,
+      totalDrives,
+      publishedDrives,
+      draftDrives,
+      totalApplications,
+      totalInterviews,
+      totalOffers,
+      acceptedOffers,
+      recentAuditLogs
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: 'student' }),
+      User.countDocuments({ role: 'officer' }),
+      User.countDocuments({ role: 'admin' }),
+      User.countDocuments({ isActive: true }),
+      User.countDocuments({ isActive: false }),
+      Drive.countDocuments(),
+      Drive.countDocuments({ status: 'published' }),
+      Drive.countDocuments({ status: 'draft' }),
+      Application.countDocuments(),
+      Interview.countDocuments(),
+      Offer.countDocuments(),
+      Offer.countDocuments({ status: 'accepted' }),
+      AuditLog.find()
+        .populate('actor', 'name email role')
+        .sort({ createdAt: -1 })
+        .limit(10)
+    ]);
+
+    res.json({
+      success: true,
+      counts: {
+        users: {
+          total: totalUsers,
+          students: studentCount,
+          officers: officerCount,
+          admins: adminCount,
+          active: activeUsers,
+          deactivated: deactivatedUsers
+        },
+        drives: {
+          total: totalDrives,
+          published: publishedDrives,
+          draft: draftDrives
+        },
+        applications: {
+          total: totalApplications
+        },
+        interviews: {
+          total: totalInterviews
+        },
+        offers: {
+          total: totalOffers,
+          accepted: acceptedOffers
+        }
+      },
+      recentAuditLogs
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

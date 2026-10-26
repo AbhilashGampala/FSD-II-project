@@ -43,8 +43,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
   const adminNav = [
     { label: 'Admin Dashboard', path: '/admin', icon: LayoutDashboard },
-    { label: 'User Directory (Phase 5)', path: '/admin/users', icon: Users, disabled: true },
-    { label: 'Audit Logs (Phase 5)', path: '/admin/audit', icon: ShieldCheck, disabled: true },
+    { label: 'User Directory', path: '/admin/users', icon: Users },
+    { label: 'Audit Logs', path: '/admin/audit', icon: ShieldCheck },
   ];
 
   const navItems = role === 'admin' ? adminNav : role === 'officer' ? officerNav : studentNav;
@@ -120,10 +120,10 @@ export const Sidebar = ({ isOpen, onClose }) => {
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
             <span>Project Status</span>
-            <span className="font-semibold text-brand-orange">Phase 4 Active</span>
+            <span className="font-semibold text-brand-green">Phase 5 Complete</span>
           </div>
           <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div className="bg-brand-orange h-full rounded-full w-4/5"></div>
+            <div className="bg-brand-green h-full rounded-full w-full"></div>
           </div>
         </div>
       </aside>

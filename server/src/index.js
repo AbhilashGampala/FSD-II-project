@@ -17,6 +17,7 @@ import offerRoutes from './routes/offers.js';
 import statRoutes from './routes/stats.js';
 import dashboardRoutes from './routes/dashboard.js';
 import profileRoutes from './routes/profile.js';
+import adminRoutes from './routes/admin.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -66,6 +67,7 @@ app.use('/api/offers', offerRoutes);
 app.use('/api/stats', statRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Root route
 app.get('/', (req, res) => {

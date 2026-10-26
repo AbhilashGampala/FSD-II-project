@@ -21,6 +21,8 @@ import { InterviewsPage } from './pages/officer/InterviewsPage';
 import { OffersPage } from './pages/officer/OffersPage';
 import { PlacementStatsPage } from './pages/officer/PlacementStatsPage';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { UserDirectoryPage } from './pages/admin/UserDirectoryPage';
+import { AuditLogsPage } from './pages/admin/AuditLogsPage';
 import { NotFoundPage, UnauthorizedPage } from './pages/ErrorPages';
 import { Spinner } from './components/common/Feedback';
 
@@ -85,6 +87,8 @@ export default function App() {
         {/* Admin Portal */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<UserDirectoryPage />} />
+          <Route path="/admin/audit" element={<AuditLogsPage />} />
         </Route>
       </Route>
 
