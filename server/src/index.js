@@ -9,6 +9,13 @@ import { PORT, CLIENT_ORIGIN, DEMO_MODE, NODE_ENV } from './config/environment.j
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/auth.js';
 import healthRoutes from './routes/health.js';
+import companyRoutes from './routes/companies.js';
+import driveRoutes from './routes/drives.js';
+import applicationRoutes from './routes/applications.js';
+import interviewRoutes from './routes/interviews.js';
+import offerRoutes from './routes/offers.js';
+import statRoutes from './routes/stats.js';
+import dashboardRoutes from './routes/dashboard.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -50,6 +57,13 @@ app.use('/api', globalLimiter);
 // Mount API routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/drives', driveRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/interviews', interviewRoutes);
+app.use('/api/offers', offerRoutes);
+app.use('/api/stats', statRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Root route
 app.get('/', (req, res) => {

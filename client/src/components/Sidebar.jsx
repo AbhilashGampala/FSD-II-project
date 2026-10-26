@@ -34,12 +34,11 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
   const officerNav = [
     { label: 'Officer Dashboard', path: '/officer', icon: LayoutDashboard },
-    { label: 'Companies (Phase 3)', path: '/officer/companies', icon: Building2, disabled: true },
-    { label: 'Placement Drives (Phase 3)', path: '/officer/drives', icon: Briefcase, disabled: true },
-    { label: 'Applications (Phase 3)', path: '/officer/applications', icon: FileCheck2, disabled: true },
-    { label: 'Interviews (Phase 3)', path: '/officer/interviews', icon: Calendar, disabled: true },
-    { label: 'Offers (Phase 3)', path: '/officer/offers', icon: Award, disabled: true },
-    { label: 'Placement Stats (Phase 3)', path: '/officer/stats', icon: BarChart3, disabled: true },
+    { label: 'Companies', path: '/officer/companies', icon: Building2 },
+    { label: 'Placement Drives', path: '/officer/drives', icon: Briefcase },
+    { label: 'Interview Schedules', path: '/officer/interviews', icon: Calendar },
+    { label: 'Placement Offers', path: '/officer/offers', icon: Award },
+    { label: 'Placement Stats', path: '/officer/stats', icon: BarChart3 },
   ];
 
   const adminNav = [
@@ -121,10 +120,10 @@ export const Sidebar = ({ isOpen, onClose }) => {
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
             <span>Project Status</span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Phase 1 Active</span>
+            <span className="font-semibold text-brand-purple">Phase 3 Active</span>
           </div>
           <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div className="bg-brand-orange h-full rounded-full w-1/5"></div>
+            <div className="bg-brand-purple h-full rounded-full w-3/5"></div>
           </div>
         </div>
       </aside>

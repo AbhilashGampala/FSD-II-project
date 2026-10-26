@@ -6,7 +6,14 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { SignupProfilePage } from './pages/SignupProfilePage';
 import { StudentDashboard } from './pages/StudentDashboard';
-import { OfficerDashboard } from './pages/OfficerDashboard';
+import { OfficerDashboard } from './pages/officer/OfficerDashboard';
+import { CompaniesPage } from './pages/officer/CompaniesPage';
+import { DrivesPage } from './pages/officer/DrivesPage';
+import { DriveFormPage } from './pages/officer/DriveFormPage';
+import { DriveApplicationsPage } from './pages/officer/DriveApplicationsPage';
+import { InterviewsPage } from './pages/officer/InterviewsPage';
+import { OffersPage } from './pages/officer/OffersPage';
+import { PlacementStatsPage } from './pages/officer/PlacementStatsPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { NotFoundPage, UnauthorizedPage } from './pages/ErrorPages';
 import { Spinner } from './components/common/Feedback';
@@ -50,9 +57,17 @@ export default function App() {
           <Route path="/student" element={<StudentDashboard />} />
         </Route>
 
-        {/* Placement Officer Portal */}
+        {/* Placement Officer Portal (Accessible to Officer & Admin) */}
         <Route element={<ProtectedRoute allowedRoles={['officer', 'admin']} />}>
           <Route path="/officer" element={<OfficerDashboard />} />
+          <Route path="/officer/companies" element={<CompaniesPage />} />
+          <Route path="/officer/drives" element={<DrivesPage />} />
+          <Route path="/officer/drives/new" element={<DriveFormPage />} />
+          <Route path="/officer/drives/:id/edit" element={<DriveFormPage />} />
+          <Route path="/officer/drives/:driveId/applications" element={<DriveApplicationsPage />} />
+          <Route path="/officer/interviews" element={<InterviewsPage />} />
+          <Route path="/officer/offers" element={<OffersPage />} />
+          <Route path="/officer/stats" element={<PlacementStatsPage />} />
         </Route>
 
         {/* Admin Portal */}
