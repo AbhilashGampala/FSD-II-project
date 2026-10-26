@@ -5,7 +5,13 @@ import { AppLayout } from './components/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { SignupProfilePage } from './pages/SignupProfilePage';
-import { StudentDashboard } from './pages/StudentDashboard';
+import { StudentDashboard } from './pages/student/StudentDashboard';
+import { StudentProfilePage } from './pages/student/StudentProfilePage';
+import { ExploreDrivesPage } from './pages/student/ExploreDrivesPage';
+import { DriveDetailPage } from './pages/student/DriveDetailPage';
+import { MyApplicationsPage } from './pages/student/MyApplicationsPage';
+import { InterviewSchedulePage } from './pages/student/InterviewSchedulePage';
+import { MyOffersPage } from './pages/student/MyOffersPage';
 import { OfficerDashboard } from './pages/officer/OfficerDashboard';
 import { CompaniesPage } from './pages/officer/CompaniesPage';
 import { DrivesPage } from './pages/officer/DrivesPage';
@@ -55,6 +61,12 @@ export default function App() {
         {/* Student Portal */}
         <Route element={<ProtectedRoute allowedRoles={['student', 'admin']} />}>
           <Route path="/student" element={<StudentDashboard />} />
+          <Route path="/student/profile" element={<StudentProfilePage />} />
+          <Route path="/student/drives" element={<ExploreDrivesPage />} />
+          <Route path="/student/drives/:id" element={<DriveDetailPage />} />
+          <Route path="/student/applications" element={<MyApplicationsPage />} />
+          <Route path="/student/interviews" element={<InterviewSchedulePage />} />
+          <Route path="/student/offers" element={<MyOffersPage />} />
         </Route>
 
         {/* Placement Officer Portal (Accessible to Officer & Admin) */}

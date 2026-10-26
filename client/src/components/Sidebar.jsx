@@ -25,11 +25,11 @@ export const Sidebar = ({ isOpen, onClose }) => {
   // Role-specific nav items
   const studentNav = [
     { label: 'Student Dashboard', path: '/student', icon: LayoutDashboard },
-    { label: 'Explore Drives (Phase 4)', path: '/student/drives', icon: Briefcase, disabled: true },
-    { label: 'My Applications (Phase 4)', path: '/student/applications', icon: FileCheck2, disabled: true },
-    { label: 'Interviews (Phase 4)', path: '/student/interviews', icon: Calendar, disabled: true },
-    { label: 'My Offers (Phase 4)', path: '/student/offers', icon: Award, disabled: true },
-    { label: 'Academic Profile (Phase 4)', path: '/student/profile', icon: UserCheck, disabled: true },
+    { label: 'Explore Drives', path: '/student/drives', icon: Briefcase },
+    { label: 'My Applications', path: '/student/applications', icon: FileCheck2 },
+    { label: 'Interviews', path: '/student/interviews', icon: Calendar },
+    { label: 'My Offers', path: '/student/offers', icon: Award },
+    { label: 'Academic Profile', path: '/student/profile', icon: UserCheck },
   ];
 
   const officerNav = [
@@ -98,7 +98,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end
+                  end={item.path === '/student' || item.path === '/officer' || item.path === '/admin'}
                   onClick={onClose}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
@@ -120,10 +120,10 @@ export const Sidebar = ({ isOpen, onClose }) => {
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
             <span>Project Status</span>
-            <span className="font-semibold text-brand-purple">Phase 3 Active</span>
+            <span className="font-semibold text-brand-orange">Phase 4 Active</span>
           </div>
           <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div className="bg-brand-purple h-full rounded-full w-3/5"></div>
+            <div className="bg-brand-orange h-full rounded-full w-4/5"></div>
           </div>
         </div>
       </aside>

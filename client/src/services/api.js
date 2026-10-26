@@ -44,6 +44,11 @@ export const api = {
 
   // Dashboard
   getOfficerDashboard: () => request('/dashboard/officer', { method: 'GET' }),
+  getStudentDashboard: () => request('/dashboard/student', { method: 'GET' }),
+
+  // Profile
+  getProfile: () => request('/profile', { method: 'GET' }),
+  updateProfile: (data) => request('/profile', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Companies
   getCompanies: (search = '') => request(`/companies${search ? `?search=${encodeURIComponent(search)}` : ''}`, { method: 'GET' }),

@@ -3,6 +3,10 @@ import Application from '../models/Application.js';
 import Interview from '../models/Interview.js';
 import Offer from '../models/Offer.js';
 import Company from '../models/Company.js';
+import Stat from '../models/Stat.js';
+import User from '../models/User.js';
+import { checkEligibility } from '../utils/eligibility.js';
+import { calculateCompleteness } from './profileController.js';
 
 // GET /api/dashboard/officer - Summary statistics, deadlines, and recent applications
 export const getOfficerDashboard = async (req, res, next) => {
@@ -42,7 +46,6 @@ export const getOfficerDashboard = async (req, res, next) => {
         .select('status createdAt student drive isSample')
     ]);
 
-    // Check if the majority of items are demo sample data
     const hasSampleData = true;
 
     res.json({
@@ -58,6 +61,92 @@ export const getOfficerDashboard = async (req, res, next) => {
       upcomingDeadlines,
       recentApplications,
       isSampleData: hasSampleData
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/dashboard/student - Summary numbers, next interview, closing deadlines, placement stats
+export const getStudentDashboard = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    const student = await User.findById(studentId);
+    const now = new Date();
+
+    const [
+      appliedCount,
+      shortlistedCount,
+      upcomingInterviewsCount,
+      offersCount,
+      nextInterview,
+      publishedDrives,
+      myApplications,
+      stats
+    ] = await Promise.all([
+      Application.countDocuments({ student: studentId }),
+      Application.countDocuments({ student: studentId, status: 'shortlisted' }),
+      Interview.countDocuments({ student: studentId, date: { $gte: now }, status: 'scheduled' }),
+      Offer.countDocuments({ student: studentId }),
+      Interview.findOne({ student: studentId, date: { $gte: now }, status: 'scheduled' })
+        .populate({
+          path: 'drive',
+          select: 'title packageLPA company',
+          populate: { path: 'company', select: 'name logoUrl' }
+        })
+        .sort({ date: 1, startTime: 1 }),
+      Drive.find({ status: 'published' })
+        .populate('company', 'name logoUrl')
+        .sort({ deadline: 1 }),
+      Application.find({ student: studentId }).select('drive status'),
+      Stat.find().sort({ year: -1 })
+    ]);
+
+    // Calculate applied drive IDs
+    const appliedDriveIds = new Set(myApplications.map((a) => a.drive.toString()));
+
+    // Evaluate eligibility for each drive
+    let eligibleDrivesCount = 0;
+    const deadlinesClosingSoon = [];
+
+    for (const drive of publishedDrives) {
+      const eligibilityResult = checkEligibility(student, drive.eligibility);
+      if (eligibilityResult.eligible) {
+        eligibleDrivesCount++;
+      }
+
+      // Collect closing soon (upcoming deadlines)
+      if (new Date(drive.deadline) >= now && deadlinesClosingSoon.length < 4) {
+        deadlinesClosingSoon.push({
+          _id: drive._id,
+          title: drive.title,
+          jobRole: drive.jobRole,
+          packageLPA: drive.packageLPA,
+          deadline: drive.deadline,
+          company: drive.company,
+          isSample: drive.isSample,
+          hasApplied: appliedDriveIds.has(drive._id.toString()),
+          eligibility: eligibilityResult
+        });
+      }
+    }
+
+    const completeness = calculateCompleteness(student);
+
+    res.json({
+      success: true,
+      counts: {
+        applied: appliedCount,
+        shortlisted: shortlistedCount,
+        interviewsUpcoming: upcomingInterviewsCount,
+        offers: offersCount,
+        eligibleDrives: eligibleDrivesCount
+      },
+      nextInterview,
+      deadlinesClosingSoon,
+      stats,
+      completeness,
+      profile: student
     });
   } catch (error) {
     next(error);
