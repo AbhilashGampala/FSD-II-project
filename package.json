@@ -4,9 +4,11 @@
   "description": "Campus Placement Tracker for Vishnu Institute of Technology (VIT), Bhimavaram",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n \"server,client\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "dev": "concurrently -n \"server,client\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
+    "start": "npm --prefix server start",
+    "build": "npm --prefix client run build",
     "seed": "npm --prefix server run seed",
     "test": "npm --prefix server run test",
     "install:all": "npm install && npm --prefix server install && npm --prefix client install"
