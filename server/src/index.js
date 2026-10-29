@@ -4,6 +4,13 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
 
 import { PORT, CLIENT_ORIGIN, DEMO_MODE, NODE_ENV } from './config/environment.js';
 import { connectDB } from './config/db.js';
@@ -81,16 +88,6 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({
-    message: 'VIT Campus Placement Tracker Backend API',
-    college: 'Vishnu Institute of Technology, Bhimavaram',
-    health: '/api/health',
-    demoMode: DEMO_MODE
-  });
-});
-
 // 404 handler for undefined API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({
@@ -98,6 +95,24 @@ app.use('/api/*', (req, res) => {
     message: `API route ${req.originalUrl} not found`
   });
 });
+
+// Serve frontend build if present (enables single-service full-stack deployment on Render)
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+} else {
+  // Fallback root route if client build is not present
+  app.get('/', (req, res) => {
+    res.json({
+      message: 'VIT Campus Placement Tracker Backend API',
+      college: 'Vishnu Institute of Technology, Bhimavaram',
+      health: '/api/health',
+      demoMode: DEMO_MODE
+    });
+  });
+}
 
 // Central error handler
 app.use(errorHandler);
