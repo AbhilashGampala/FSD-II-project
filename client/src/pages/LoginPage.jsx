@@ -192,7 +192,7 @@ export const LoginPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                helperText="Example: 24pa1a05c2@vishnu.edu.in"
+                helperText="Example: 24pa1a0567@vishnu.edu.in"
               />
 
               <Button
