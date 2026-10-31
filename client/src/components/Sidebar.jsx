@@ -55,45 +55,32 @@ export const Sidebar = ({ isOpen, onClose }) => {
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
         />
       )}
 
       {/* Sidebar Panel */}
       <aside
-        className={`fixed md:sticky top-16 left-0 z-40 md:z-20 w-64 h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out ${
+        className={`fixed md:sticky top-16 left-0 z-40 md:z-20 w-64 h-[calc(100vh-4rem)] bg-white border-r border-[#E5E7EB] flex flex-col justify-between transition-transform duration-200 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         <div className="p-4 overflow-y-auto">
           {/* Mobile close button */}
-          <div className="flex items-center justify-between md:hidden pb-3 mb-2 border-b border-slate-200 dark:border-slate-700">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Navigation</span>
-            <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-700">
+          <div className="flex items-center justify-between md:hidden pb-3 mb-2 border-b border-[#E5E7EB]">
+            <span className="text-xs font-bold text-[#666666] uppercase tracking-wider">Navigation</span>
+            <button onClick={onClose} className="p-1 text-[#666666] hover:text-[#252525]">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="space-y-1">
-            <div className="px-3 py-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            <div className="px-3 py-2 text-[11px] font-bold text-[#666666] uppercase tracking-wider">
               {role.toUpperCase()} PORTAL
             </div>
 
             {navItems.map((item) => {
               const Icon = item.icon;
-              if (item.disabled) {
-                return (
-                  <div
-                    key={item.label}
-                    title="Available in future phase"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 dark:text-slate-600 cursor-not-allowed select-none"
-                  >
-                    <Icon className="w-4 h-4 opacity-70" />
-                    <span>{item.label}</span>
-                  </div>
-                );
-              }
-
               return (
                 <NavLink
                   key={item.path}
@@ -101,14 +88,14 @@ export const Sidebar = ({ isOpen, onClose }) => {
                   end={item.path === '/student' || item.path === '/officer' || item.path === '/admin'}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
                       isActive
-                        ? 'bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-slate-800 dark:to-slate-800 text-brand-orange border-l-4 border-brand-orange'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                        ? 'bg-[#E58A1F]/10 text-[#E58A1F] border-l-4 border-[#E58A1F] font-bold shadow-2xs'
+                        : 'text-[#666666] hover:text-[#252525] hover:bg-[#F7F8FA]'
                     }`
                   }
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 flex-shrink-0" />
                   <span>{item.label}</span>
                 </NavLink>
               );
@@ -116,14 +103,17 @@ export const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Phase Indicator Footer in Sidebar */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span>Project Status</span>
-            <span className="font-semibold text-brand-green">Phase 5 Complete</span>
+        {/* Institutional Badge in Sidebar */}
+        <div className="p-4 border-t border-[#E5E7EB] bg-[#F7F8FA]/60">
+          <div className="flex items-center justify-between text-[11px] text-[#666666]">
+            <span>System Status</span>
+            <span className="font-semibold text-[#94BC36] flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#94BC36] animate-pulse"></span>
+              Operational
+            </span>
           </div>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div className="bg-brand-green h-full rounded-full w-full"></div>
+          <div className="text-[10px] text-slate-400 mt-1">
+            Vishnu Universal Learning
           </div>
         </div>
       </aside>

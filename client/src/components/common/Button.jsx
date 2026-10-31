@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Button = ({
   children,
-  variant = 'primary', // 'primary', 'secondary', 'outline', 'danger', 'ghost'
+  variant = 'primary', // 'primary', 'secondary', 'purple', 'violet', 'outline', 'danger', 'ghost'
   size = 'md', // 'sm', 'md', 'lg'
   loading = false,
   disabled = false,
@@ -11,7 +11,7 @@ export const Button = ({
   onClick,
   ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-150 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.99]';
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-xs',
@@ -20,12 +20,13 @@ export const Button = ({
   };
 
   const variantClasses = {
-    primary: 'bg-brand-orange hover:bg-orange-600 text-white shadow-sm focus:ring-brand-orange',
-    secondary: 'bg-brand-green hover:bg-green-600 text-white shadow-sm focus:ring-brand-green',
-    purple: 'bg-brand-purple hover:bg-purple-800 text-white shadow-sm focus:ring-brand-purple',
-    outline: 'border border-slate-300 dark:border-slate-700 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 focus:ring-slate-400',
-    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm focus:ring-red-500',
-    ghost: 'bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+    primary: 'bg-[#E58A1F] hover:bg-[#d47d18] text-white shadow-sm focus:ring-[#E58A1F]',
+    secondary: 'bg-[#94BC36] hover:bg-[#83a72e] text-white shadow-sm focus:ring-[#94BC36]',
+    purple: 'bg-[#95058A] hover:bg-[#800476] text-white shadow-sm focus:ring-[#95058A]',
+    violet: 'bg-[#95058A] hover:bg-[#800476] text-white shadow-sm focus:ring-[#95058A]',
+    outline: 'border border-[#E5E7EB] bg-white hover:bg-[#F7F8FA] text-[#252525] hover:border-slate-300 focus:ring-[#E58A1F] shadow-xs',
+    danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm focus:ring-rose-500',
+    ghost: 'bg-transparent hover:bg-[#F7F8FA] text-[#666666] hover:text-[#252525]'
   };
 
   return (
@@ -33,7 +34,7 @@ export const Button = ({
       type={type}
       disabled={disabled || loading}
       onClick={onClick}
-      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant] || variantClasses.primary} ${className}`}
       {...props}
     >
       {loading ? (

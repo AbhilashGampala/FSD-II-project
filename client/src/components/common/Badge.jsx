@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Badge = ({
   children,
-  variant = 'default', // 'default', 'success', 'warning', 'danger', 'info', 'purple'
+  variant = 'default', // 'default', 'success', 'warning', 'danger', 'info', 'purple', 'orange'
   size = 'md',
   className = ''
 }) => {
@@ -12,16 +12,17 @@ export const Badge = ({
   };
 
   const variantClasses = {
-    default: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700',
-    success: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800',
-    warning: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800',
-    danger: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800',
-    info: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800',
-    purple: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800'
+    default: 'bg-[#F7F8FA] text-[#666666] border border-[#E5E7EB]',
+    success: 'bg-[#94BC36]/15 text-[#547214] border border-[#94BC36]/30',
+    warning: 'bg-[#E58A1F]/15 text-[#A85F0A] border border-[#E58A1F]/30',
+    orange: 'bg-[#E58A1F]/15 text-[#A85F0A] border border-[#E58A1F]/30',
+    danger: 'bg-rose-50 text-rose-700 border border-rose-200',
+    info: 'bg-sky-50 text-sky-700 border border-sky-200',
+    purple: 'bg-[#95058A]/10 text-[#95058A] border border-[#95058A]/25'
   };
 
   return (
-    <span className={`inline-flex items-center rounded-md ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}>
+    <span className={`inline-flex items-center rounded-lg ${sizeClasses[size]} ${variantClasses[variant] || variantClasses.default} ${className}`}>
       {children}
     </span>
   );
@@ -31,7 +32,7 @@ export const SampleBadge = ({ className = '' }) => {
   return (
     <span
       title="This is fictional demonstration data for testing"
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F7F8FA] text-[#666666] border border-[#E5E7EB] ${className}`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
       Sample data
@@ -43,9 +44,9 @@ export const VerifiedBadge = ({ verified = false, sourceUrl, year, className = '
   if (verified && sourceUrl) {
     return (
       <span
-        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 ${className}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#94BC36]/15 text-[#547214] border border-[#94BC36]/30 ${className}`}
       >
-        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span className="w-2 h-2 rounded-full bg-[#94BC36]"></span>
         Verified {year ? `(${year})` : ''}
       </span>
     );
@@ -53,7 +54,7 @@ export const VerifiedBadge = ({ verified = false, sourceUrl, year, className = '
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 ${className}`}
     >
       <span className="w-2 h-2 rounded-full bg-amber-500"></span>
       Unverified, add from official report

@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input, Select } from '../components/common/Input';
-import { ShieldAlert, UserPlus, CheckCircle } from 'lucide-react';
+import { AlertCircle, UserPlus, CheckCircle, Eye, EyeOff } from 'lucide-react';
 
 const BRANCH_OPTIONS = [
   'CSE',
@@ -29,6 +29,7 @@ export const SignupProfilePage = () => {
   const [formData, setFormData] = useState({
     email: passedEmail,
     name: '',
+    password: '',
     rollNo: prefill.rollNo || '',
     branch: '',
     phone: '',
@@ -36,6 +37,7 @@ export const SignupProfilePage = () => {
     graduationYear: prefill.graduationYear || ''
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -70,6 +72,7 @@ export const SignupProfilePage = () => {
       const res = await api.signupProfile({
         email: formData.email,
         name: formData.name,
+        password: formData.password || 'Vishnu@123',
         rollNo: formData.rollNo,
         branch: formData.branch,
         phone: formData.phone,
@@ -89,26 +92,33 @@ export const SignupProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[#F7F8FA]">
       <div className="w-full max-w-lg space-y-6">
         
-        {/* Header */}
-        <div className="text-center space-y-1">
-          <div className="inline-flex w-12 h-12 rounded-xl bg-brand-green/20 text-brand-green items-center justify-center mb-1">
-            <UserPlus className="w-6 h-6" />
+        {/* Brand Header */}
+        <div className="text-center space-y-2">
+          <div className="flex justify-center">
+            <img
+              src="/vishnu-logo.png"
+              alt="Vishnu Universal Learning"
+              className="h-16 w-auto object-contain"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#252525]">
             Complete Student Profile
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Welcome to VIT Placement Tracker. Please verify and confirm your academic details.
+          <p className="text-xs text-[#666666]">
+            Vishnu Institute of Technology • Confirm academic credentials
           </p>
         </div>
 
-        <Card className="shadow-lg border-slate-200 dark:border-slate-800">
+        <Card className="shadow-[0_4px_24px_rgba(0,0,0,0.06)] border-[#E5E7EB] bg-white p-6 sm:p-8 rounded-2xl">
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500" />
               <span>{error}</span>
             </div>
           )}
@@ -122,7 +132,7 @@ export const SignupProfilePage = () => {
               value={formData.email}
               readOnly
               disabled
-              helperText="Verified via OTP authentication"
+              helperText="Verified via official Vishnu college domain"
             />
 
             {/* Full Name */}
@@ -135,7 +145,27 @@ export const SignupProfilePage = () => {
               required
             />
 
-            {/* Roll Number (Prefilled) */}
+            {/* Set Account Password */}
+            <Input
+              label="Create Login Password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="e.g. Set account password (optional, default: Vishnu@123)"
+              value={formData.password}
+              onChange={handleChange}
+              helperText="You will use this password to sign in"
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
+            />
+
+            {/* Roll Number & Branch */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
                 label="Roll Number"
@@ -143,10 +173,9 @@ export const SignupProfilePage = () => {
                 placeholder="e.g. 24PA1A05C2"
                 value={formData.rollNo}
                 onChange={handleChange}
-                helperText="Auto-detected from email prefix"
+                helperText="Auto-detected from email"
               />
 
-              {/* Branch Select */}
               <Select
                 label="Branch"
                 name="branch"
@@ -155,7 +184,7 @@ export const SignupProfilePage = () => {
                 options={BRANCH_OPTIONS}
                 placeholder="-- Select Branch --"
                 required
-                helperText="Confirm your department"
+                helperText="Engineering department"
               />
             </div>
 
@@ -191,9 +220,9 @@ export const SignupProfilePage = () => {
 
             <Button
               type="submit"
-              variant="secondary"
+              variant="primary"
               loading={loading}
-              className="w-full mt-4 flex items-center gap-2"
+              className="w-full mt-4 flex items-center justify-center gap-2 py-3"
             >
               <CheckCircle className="w-4 h-4" />
               <span>Confirm & Enter Student Portal</span>

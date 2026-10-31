@@ -3,10 +3,10 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
+  // Always default to light theme for Vishnu Universal Learning brand experience
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('vit_theme');
-    if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return saved === 'dark' ? 'dark' : 'light';
   });
 
   useEffect(() => {

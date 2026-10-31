@@ -4,6 +4,7 @@ dotenv.config();
 
 import User from '../models/User.js';
 import { MONGODB_URI } from '../config/environment.js';
+import { hashPassword } from '../utils/passwordHelper.js';
 
 const seedUsers = async () => {
   if (!MONGODB_URI) {
@@ -21,6 +22,7 @@ const seedUsers = async () => {
     const adminUser = {
       name: 'VIT Admin',
       email: '24pa1a0567@vishnu.edu.in',
+      password: hashPassword('Vishnu@123'),
       rollNo: '24PA1A0567',
       role: 'admin',
       branch: 'CSE',
@@ -35,6 +37,7 @@ const seedUsers = async () => {
     const officerUser = {
       name: 'S. Manikanta',
       email: 'manikanta@vishnu.edu.in',
+      password: hashPassword('Vishnu@123'),
       rollNo: 'OFFICER01',
       role: 'officer',
       branch: 'CSE',
@@ -244,6 +247,9 @@ const seedUsers = async () => {
     console.log(`Seeding ${allUsersToSeed.length} users into database...`);
 
     for (const userData of allUsersToSeed) {
+      if (!userData.password) {
+        userData.password = hashPassword('Vishnu@123');
+      }
       await User.findOneAndUpdate(
         { email: userData.email },
         { $set: userData },

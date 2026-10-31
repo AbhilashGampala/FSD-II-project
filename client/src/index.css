@@ -3,8 +3,22 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-brand-orange: #E58A1F;
+    --color-brand-green: #94BC36;
+    --color-brand-violet: #95058A;
+    --color-bg-primary: #FFFFFF;
+    --color-bg-secondary: #F7F8FA;
+    --color-text-primary: #252525;
+    --color-text-secondary: #666666;
+    --color-border: #E5E7EB;
+  }
+
   body {
-    @apply transition-colors duration-200;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
@@ -19,9 +33,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  background: #D1D5DB;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400 dark:bg-slate-600;
+  background: #9CA3AF;
 }

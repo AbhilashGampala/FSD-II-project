@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import {
+  login,
   requestOtp,
   verifyOtp,
   signupProfile,
@@ -26,6 +27,7 @@ const otpLimiter = rateLimit({
 
 // Auth Routes
 router.get('/config', getConfig);
+router.post('/login', otpLimiter, login);
 router.post('/request-otp', otpLimiter, requestOtp);
 router.post('/verify-otp', otpLimiter, verifyOtp);
 router.post('/signup-profile', signupProfile);

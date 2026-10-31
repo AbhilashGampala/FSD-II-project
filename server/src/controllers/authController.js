@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import User, { BRANCH_ENUM } from '../models/User.js';
 import Otp from '../models/Otp.js';
 import { hashOtp, generateOtp, parseRollFromEmail } from '../utils/otpHelper.js';
+import { hashPassword, verifyPassword } from '../utils/passwordHelper.js';
 import { JWT_SECRET, DEMO_MODE, NODE_ENV } from '../config/environment.js';
 
 // Helper to sign JWT and set cookie
@@ -20,6 +21,94 @@ const setAuthCookie = (res, user) => {
   });
 
   return token;
+};
+
+/**
+ * Direct Email/Roll Number & Password Login
+ */
+export const login = async (req, res, next) => {
+  try {
+    const { email, identifier, username, password } = req.body;
+    const rawIdentifier = identifier || email || username;
+
+    if (!rawIdentifier || !rawIdentifier.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter your registered email address or roll number.'
+      });
+    }
+
+    if (!password || !password.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter your password.'
+      });
+    }
+
+    const input = rawIdentifier.trim();
+    let emailLookup = input.toLowerCase();
+    if (!emailLookup.includes('@')) {
+      emailLookup = `${emailLookup}@vishnu.edu.in`;
+    }
+
+    // Lookup user by email OR roll number
+    const user = await User.findOne({
+      $or: [
+        { email: emailLookup },
+        { rollNo: { $regex: new RegExp(`^${input}$`, 'i') } }
+      ]
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials. User account not found.'
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact the administrator.'
+      });
+    }
+
+    // Verify password:
+    // If user has a hashed password, verify it
+    // If user has no password yet (legacy/seeded user), check default password 'Vishnu@123' or rollNo
+    let isPasswordValid = false;
+    if (user.password) {
+      isPasswordValid = verifyPassword(password, user.password);
+    } else {
+      if (password === 'Vishnu@123' || (user.rollNo && password === user.rollNo)) {
+        isPasswordValid = true;
+        user.password = hashPassword(password);
+        await user.save();
+      }
+    }
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid password. Please check your credentials.'
+      });
+    }
+
+    const token = setAuthCookie(res, user);
+
+    const safeUser = user.toObject();
+    delete safeUser.password;
+    delete safeUser.__v;
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: safeUser
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -146,12 +235,16 @@ export const verifyOtp = async (req, res, next) => {
         });
       }
 
-      setAuthCookie(res, user);
+      const token = setAuthCookie(res, user);
+      const safeUser = user.toObject();
+      delete safeUser.password;
+      delete safeUser.__v;
 
       return res.status(200).json({
         success: true,
         isNewUser: false,
-        user
+        token,
+        user: safeUser
       });
     }
 
@@ -174,7 +267,7 @@ export const verifyOtp = async (req, res, next) => {
  */
 export const signupProfile = async (req, res, next) => {
   try {
-    const { email, name, rollNo, branch, phone, admissionYear, graduationYear } = req.body;
+    const { email, name, rollNo, branch, phone, admissionYear, graduationYear, password } = req.body;
 
     if (!email || !name || !branch) {
       return res.status(400).json({
@@ -212,6 +305,7 @@ export const signupProfile = async (req, res, next) => {
     const newUser = new User({
       name: name.trim(),
       email: normalizedEmail,
+      password: password ? hashPassword(password) : hashPassword('Vishnu@123'),
       rollNo: rollNo ? rollNo.trim().toUpperCase() : '',
       role: 'student', // Signup is strictly for students
       branch,
@@ -224,12 +318,17 @@ export const signupProfile = async (req, res, next) => {
 
     await newUser.save();
 
-    setAuthCookie(res, newUser);
+    const token = setAuthCookie(res, newUser);
+
+    const safeUser = newUser.toObject();
+    delete safeUser.password;
+    delete safeUser.__v;
 
     return res.status(201).json({
       success: true,
       message: 'Account created successfully',
-      user: newUser
+      token,
+      user: safeUser
     });
   } catch (error) {
     next(error);
@@ -256,9 +355,12 @@ export const logout = (req, res) => {
  * Get current authenticated user profile
  */
 export const getMe = (req, res) => {
+  const safeUser = req.user.toObject ? req.user.toObject() : { ...req.user };
+  delete safeUser.password;
+  delete safeUser.__v;
   return res.status(200).json({
     success: true,
-    user: req.user
+    user: safeUser
   });
 };
 

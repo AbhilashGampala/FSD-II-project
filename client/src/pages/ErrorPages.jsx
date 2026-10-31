@@ -6,13 +6,13 @@ import { ShieldX, Home, ArrowLeft } from 'lucide-react';
 
 export const NotFoundPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
-      <Card className="max-w-md w-full text-center p-8 space-y-4 shadow-lg">
-        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 mx-auto flex items-center justify-center text-2xl font-bold">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#F7F8FA]">
+      <Card className="max-w-md w-full text-center p-8 space-y-4 shadow-sm border-[#E5E7EB] bg-white">
+        <div className="w-16 h-16 rounded-full bg-[#F7F8FA] border border-[#E5E7EB] text-[#666666] mx-auto flex items-center justify-center text-2xl font-bold">
           404
         </div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Page Not Found</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <h1 className="text-xl font-bold text-[#252525]">Page Not Found</h1>
+        <p className="text-xs text-[#666666]">
           The requested page does not exist or may have been moved.
         </p>
         <div className="pt-2">
@@ -30,13 +30,13 @@ export const NotFoundPage = () => {
 
 export const UnauthorizedPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
-      <Card className="max-w-md w-full text-center p-8 space-y-4 shadow-lg border-red-200 dark:border-red-900/50">
-        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/50 text-red-600 mx-auto flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#F7F8FA]">
+      <Card className="max-w-md w-full text-center p-8 space-y-4 shadow-sm border-red-200 bg-white">
+        <div className="w-16 h-16 rounded-full bg-red-50 text-red-600 mx-auto flex items-center justify-center">
           <ShieldX className="w-8 h-8" />
         </div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Access Denied (403)</h1>
-        <p className="text-xs text-slate-600 dark:text-slate-400">
+        <h1 className="text-xl font-bold text-[#252525]">Access Denied (403)</h1>
+        <p className="text-xs text-[#666666]">
           You do not have the required permissions to view this portal. Role-based access control is strictly enforced on both server and client.
         </p>
         <div className="pt-2">

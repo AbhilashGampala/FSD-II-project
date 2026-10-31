@@ -1,12 +1,15 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 /**
- * Common request wrapper with JSON headers and cookie credentials
+ * Common request wrapper with JSON headers, Authorization token, and cookie credentials
  */
 const request = async (endpoint, options = {}) => {
   const url = `${API_BASE}${endpoint}`;
+  const token = localStorage.getItem('vit_auth_token');
+
   const headers = {
     'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {})
   };
 
@@ -18,26 +21,49 @@ const request = async (endpoint, options = {}) => {
 
   try {
     const res = await fetch(url, config);
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      data = { message: res.statusText || 'Unexpected server response' };
+    }
 
     if (!res.ok) {
       throw new Error(data.message || 'Something went wrong');
     }
 
+    // Persist token to localStorage if returned
+    if (data && data.token) {
+      localStorage.setItem('vit_auth_token', data.token);
+    }
+
     return data;
   } catch (err) {
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      throw new Error('Unable to connect to server. Please ensure the backend is running.');
+    }
     throw err;
   }
 };
 
 export const api = {
   // Auth
+  login: (identifier, password) => request('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ identifier, password })
+  }),
   getConfig: () => request('/auth/config', { method: 'GET' }),
   requestOtp: (email) => request('/auth/request-otp', { method: 'POST', body: JSON.stringify({ email }) }),
   verifyOtp: (email, otp) => request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }),
   signupProfile: (profileData) => request('/auth/signup-profile', { method: 'POST', body: JSON.stringify(profileData) }),
   getMe: () => request('/auth/me', { method: 'GET' }),
-  logout: () => request('/auth/logout', { method: 'POST' }),
+  logout: async () => {
+    try {
+      await request('/auth/logout', { method: 'POST' });
+    } finally {
+      localStorage.removeItem('vit_auth_token');
+    }
+  },
 
   // System Health
   getHealth: () => request('/health', { method: 'GET' }),

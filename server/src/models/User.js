@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
         message: 'Only official college emails ending with @vishnu.edu.in are allowed'
       }
     },
+    password: {
+      type: String,
+      default: ''
+    },
     rollNo: {
       type: String,
       trim: true,

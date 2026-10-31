@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Card } from '../components/common/Card';
-import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { Spinner } from '../components/common/Feedback';
 import {
@@ -11,16 +10,10 @@ import {
   Users,
   Briefcase,
   Award,
-  Calendar,
-  Lock,
   ArrowRight,
   Activity,
-  UserCheck,
-  Clock,
-  Eye,
   CheckCircle2,
-  FileCheck2,
-  Building2
+  FileCheck2
 } from 'lucide-react';
 
 export const AdminDashboard = () => {
@@ -53,7 +46,7 @@ export const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-sm border border-red-200">
+      <div className="p-4 rounded-xl bg-red-50 text-red-700 text-sm border border-red-200">
         {error}
       </div>
     );
@@ -69,23 +62,24 @@ export const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Admin Header */}
-      <div className="bg-gradient-to-r from-purple-500/10 via-red-500/10 to-orange-500/10 dark:from-purple-950/30 dark:via-red-950/30 dark:to-orange-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-2 h-full bg-[#95058A]"></div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#252525]">
                 Admin Control Center
               </h1>
-              <Badge variant="danger" size="md">
+              <Badge variant="purple" size="md">
                 SUPER ADMIN
               </Badge>
             </div>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-xs sm:text-sm text-[#666666]">
               Institutional Administration • Vishnu Institute of Technology, Bhimavaram
             </p>
           </div>
-          <div className="text-right text-xs text-slate-500">
-            Current Operator: <span className="font-mono text-brand-purple font-bold">{user?.email}</span>
+          <div className="text-right text-xs text-[#666666]">
+            Active Administrator: <span className="font-mono text-[#95058A] font-bold">{user?.email}</span>
           </div>
         </div>
       </div>
@@ -93,64 +87,64 @@ export const AdminDashboard = () => {
       {/* KPI Counters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Users */}
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/50 text-brand-purple flex items-center justify-center flex-shrink-0">
+        <Card className="flex items-center gap-4 p-5">
+          <div className="w-12 h-12 rounded-xl bg-[#95058A]/10 text-[#95058A] flex items-center justify-center flex-shrink-0">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Registered Users</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">
+            <p className="text-xs text-[#666666] font-medium">Total Registered Users</p>
+            <p className="text-2xl font-bold text-[#252525]">
               {userCounts.total ?? 0}
             </p>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[#666666]">
               {userCounts.students ?? 0} Students • {userCounts.officers ?? 0} Officers
             </p>
           </div>
         </Card>
 
         {/* Drives */}
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950/50 text-brand-orange flex items-center justify-center flex-shrink-0">
+        <Card className="flex items-center gap-4 p-5">
+          <div className="w-12 h-12 rounded-xl bg-[#E58A1F]/10 text-[#E58A1F] flex items-center justify-center flex-shrink-0">
             <Briefcase className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Placement Drives</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">
+            <p className="text-xs text-[#666666] font-medium">Placement Drives</p>
+            <p className="text-2xl font-bold text-[#252525]">
               {driveCounts.total ?? 0}
             </p>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[#666666]">
               {driveCounts.published ?? 0} Published • {driveCounts.draft ?? 0} Drafts
             </p>
           </div>
         </Card>
 
         {/* Applications */}
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center flex-shrink-0">
+        <Card className="flex items-center gap-4 p-5">
+          <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0">
             <FileCheck2 className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Applications Processed</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">
+            <p className="text-xs text-[#666666] font-medium">Applications Processed</p>
+            <p className="text-2xl font-bold text-[#252525]">
               {appCounts.total ?? 0}
             </p>
-            <p className="text-[11px] text-slate-400">
-              Across institutional recruiters
+            <p className="text-[11px] text-[#666666]">
+              Across corporate recruiters
             </p>
           </div>
         </Card>
 
         {/* Offers */}
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-950/50 text-brand-green flex items-center justify-center flex-shrink-0">
+        <Card className="flex items-center gap-4 p-5">
+          <div className="w-12 h-12 rounded-xl bg-[#94BC36]/15 text-[#94BC36] flex items-center justify-center flex-shrink-0">
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Placement Offers</p>
-            <p className="text-2xl font-black text-brand-green">
+            <p className="text-xs text-[#666666] font-medium">Placement Offers</p>
+            <p className="text-2xl font-bold text-[#94BC36]">
               {offerCounts.total ?? 0}
             </p>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[#666666]">
               {offerCounts.accepted ?? 0} Confirmed Acceptance
             </p>
           </div>
@@ -160,78 +154,78 @@ export const AdminDashboard = () => {
       {/* Quick Admin Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link to="/admin/users" className="block group">
-          <Card className="p-4 hover:border-brand-purple transition-all flex items-center justify-between">
+          <Card className="p-4 hover:border-[#95058A] transition-all flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-brand-purple flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#95058A]/10 text-[#95058A] flex items-center justify-center">
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-brand-purple transition-colors">
+                <h4 className="text-sm font-bold text-[#252525] group-hover:text-[#95058A] transition-colors">
                   User Directory
                 </h4>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-[#666666]">
                   Manage accounts, grant roles & create officers
                 </p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-brand-purple group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#95058A] group-hover:translate-x-1 transition-all" />
           </Card>
         </Link>
 
         <Link to="/admin/audit" className="block group">
-          <Card className="p-4 hover:border-brand-purple transition-all flex items-center justify-between">
+          <Card className="p-4 hover:border-red-400 transition-all flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-brand-purple transition-colors">
+                <h4 className="text-sm font-bold text-[#252525] group-hover:text-red-600 transition-colors">
                   Compliance Audit Logs
                 </h4>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-[#666666]">
                   Immutable event trail of administrative actions
                 </p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-brand-purple group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
           </Card>
         </Link>
 
         <Link to="/officer/stats" className="block group">
-          <Card className="p-4 hover:border-brand-purple transition-all flex items-center justify-between">
+          <Card className="p-4 hover:border-[#94BC36] transition-all flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-950/40 text-brand-green flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#94BC36]/15 text-[#94BC36] flex items-center justify-center">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-brand-purple transition-colors">
+                <h4 className="text-sm font-bold text-[#252525] group-hover:text-[#94BC36] transition-colors">
                   Placement Statistics
                 </h4>
-                <p className="text-[11px] text-slate-500">
-                  Data honesty verified placement records
+                <p className="text-[11px] text-[#666666]">
+                  Institutional verified placement records
                 </p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-brand-purple group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#94BC36] group-hover:translate-x-1 transition-all" />
           </Card>
         </Link>
       </div>
 
       {/* Recent Audit Trail Spotlight */}
       <Card className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Activity className="w-4 h-4 text-brand-purple" />
+            <h3 className="text-sm sm:text-base font-bold text-[#252525] flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#95058A]" />
               Recent Institutional Activity Logs
             </h3>
-            <p className="text-xs text-slate-500">
-              Live updates recorded across all placement modules
+            <p className="text-xs text-[#666666]">
+              Live updates recorded across placement operations
             </p>
           </div>
           <Link
             to="/admin/audit"
-            className="text-xs font-semibold text-brand-purple hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-[#95058A] hover:underline flex items-center gap-1"
           >
             <span>View All Logs</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -239,20 +233,20 @@ export const AdminDashboard = () => {
         </div>
 
         {recentAuditLogs.length === 0 ? (
-          <p className="text-xs text-slate-400 py-6 text-center">No recent activity logs found</p>
+          <p className="text-xs text-[#666666] py-6 text-center">No recent activity logs found</p>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
+          <div className="divide-y divide-[#E5E7EB]">
             {recentAuditLogs.map((log) => {
               const actor = log.actor || {};
               return (
                 <div key={log._id} className="py-2.5 flex items-center justify-between text-xs gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-2 h-2 rounded-full bg-brand-purple flex-shrink-0" />
+                    <div className="w-2 h-2 rounded-full bg-[#95058A] flex-shrink-0" />
                     <div className="truncate">
-                      <span className="font-semibold text-slate-900 dark:text-white">
+                      <span className="font-semibold text-[#252525]">
                         {log.action}
                       </span>
-                      <span className="text-slate-500 text-[11px] ml-2">
+                      <span className="text-[#666666] text-[11px] ml-2">
                         by {actor.name || 'System'} ({actor.email || 'N/A'})
                       </span>
                     </div>

@@ -11,6 +11,7 @@ import Offer from '../models/Offer.js';
 import AuditLog from '../models/AuditLog.js';
 import Stat from '../models/Stat.js';
 import { MONGODB_URI } from '../config/environment.js';
+import { hashPassword } from '../utils/passwordHelper.js';
 
 const seedDatabase = async () => {
   if (!MONGODB_URI) {
@@ -49,6 +50,7 @@ const seedDatabase = async () => {
       {
         name: 'VIT Admin',
         email: '24pa1a0567@vishnu.edu.in',
+        password: hashPassword('Vishnu@123'),
         rollNo: '24PA1A0567',
         role: 'admin',
         branch: 'CSE',
@@ -66,6 +68,7 @@ const seedDatabase = async () => {
       {
         name: 'S. Manikanta',
         email: 'manikanta@vishnu.edu.in',
+        password: hashPassword('Vishnu@123'),
         rollNo: 'OFFICER01',
         role: 'officer',
         branch: 'CSE',
@@ -97,7 +100,12 @@ const seedDatabase = async () => {
       { name: 'Lakshmi Priya', email: 'demo.student12@vishnu.edu.in', rollNo: '22PA1A5412', role: 'student', branch: 'AI&DS', admissionYear: 2022, graduationYear: 2026, cgpa: 9.4, tenthPct: 95.0, twelfthPct: 93.5, activeBacklogs: 0, phone: '9876500012', isActive: true, isSample: true }
     ];
 
-    const seededStudents = await User.insertMany(studentData);
+    const studentsWithPasswords = studentData.map((s) => ({
+      ...s,
+      password: hashPassword('Vishnu@123')
+    }));
+
+    const seededStudents = await User.insertMany(studentsWithPasswords);
     console.log(`✅ Seeded ${seededStudents.length} sample students.`);
 
     // -------------------------------------------------------------------------

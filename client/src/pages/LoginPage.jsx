@@ -1,19 +1,41 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
-import { Mail, KeyRound, ShieldAlert, CheckCircle2, ArrowRight, UserCheck } from 'lucide-react';
+import {
+  Lock,
+  Mail,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  KeyRound,
+  GraduationCap
+} from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { user, loginUser, demoMode } = useAuth();
 
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP
+  // Mode: 'password' (standard credentials) or 'otp' (college one-time password)
+  const [authMethod, setAuthMethod] = useState('password');
+
+  // Password Login Fields
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // OTP Login Fields
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpStep, setOtpStep] = useState(1); // 1: Email, 2: OTP
+
+  // Common UI State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
@@ -27,30 +49,65 @@ export const LoginPage = () => {
     }
   }, [user, navigate]);
 
+  // Handle Password-based Login
+  const handlePasswordLogin = async (e) => {
+    e?.preventDefault();
+    setError('');
+    setInfoMessage('');
+
+    const cleanIdentifier = identifier.trim();
+    if (!cleanIdentifier) {
+      setError('Please enter your college email address or roll number.');
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter your account password.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await api.login(cleanIdentifier, password);
+      if (res.success && res.user) {
+        loginUser(res.user);
+        if (res.user.role === 'admin') navigate('/admin');
+        else if (res.user.role === 'officer') navigate('/officer');
+        else navigate('/student');
+      } else {
+        setError(res.message || 'Login failed. Please check your credentials.');
+      }
+    } catch (err) {
+      setError(err.message || 'Authentication failed. Please verify your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Step 1: Request OTP
   const handleRequestOtp = async (e) => {
     e?.preventDefault();
     setError('');
     setInfoMessage('');
 
-    const trimmedEmail = email.toLowerCase().trim();
+    const trimmedEmail = otpEmail.toLowerCase().trim();
     if (!trimmedEmail) {
-      setError('Please enter your college email address');
+      setError('Please enter your college email address.');
       return;
     }
 
     if (!trimmedEmail.endsWith('@vishnu.edu.in')) {
-      setError('Only official Vishnu Institute of Technology emails (@vishnu.edu.in) are permitted');
+      setError('Only official Vishnu Institute of Technology emails (@vishnu.edu.in) are permitted.');
       return;
     }
 
     setLoading(true);
     try {
       const res = await api.requestOtp(trimmedEmail);
-      setInfoMessage(res.message || 'OTP sent successfully!');
-      setStep(2);
+      setInfoMessage(res.message || 'OTP sent successfully! Enter code below.');
+      setOtpStep(2);
     } catch (err) {
-      setError(err.message || 'Failed to request OTP');
+      setError(err.message || 'Failed to request OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -62,14 +119,15 @@ export const LoginPage = () => {
     setError('');
     setInfoMessage('');
 
-    if (!otp || otp.length < 6) {
-      setError('Please enter a valid 6-digit OTP code');
+    const cleanOtp = otpCode.trim();
+    if (!cleanOtp || cleanOtp.length < 6) {
+      setError('Please enter a valid 6-digit OTP code.');
       return;
     }
 
     setLoading(true);
     try {
-      const res = await api.verifyOtp(email.toLowerCase().trim(), otp);
+      const res = await api.verifyOtp(otpEmail.toLowerCase().trim(), cleanOtp);
 
       if (res.isNewUser) {
         // Redirect to first-time student profile setup
@@ -86,219 +144,301 @@ export const LoginPage = () => {
         else navigate('/student');
       }
     } catch (err) {
-      setError(err.message || 'OTP verification failed');
+      setError(err.message || 'OTP verification failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Quick Demo Auto-login Helper
-  const handleQuickDemoLogin = async (demoEmail) => {
+  // Quick 1-Click Demo Login Helper
+  const handleQuickDemoLogin = async (demoEmail, demoRole) => {
     setError('');
     setInfoMessage('');
-    setEmail(demoEmail);
-    setOtp('123456');
     setLoading(true);
 
     try {
-      // 1. Request OTP
-      await api.requestOtp(demoEmail);
-      // 2. Verify with standard demo OTP '123456'
-      const verifyRes = await api.verifyOtp(demoEmail, '123456');
-      if (verifyRes.isNewUser) {
-        navigate('/signup-profile', {
-          state: {
-            email: verifyRes.email,
-            prefill: verifyRes.prefill
-          }
-        });
-      } else {
-        loginUser(verifyRes.user);
-        if (verifyRes.user.role === 'admin') navigate('/admin');
-        else if (verifyRes.user.role === 'officer') navigate('/officer');
-        else navigate('/student');
+      // First attempt direct password login with default credential
+      try {
+        const res = await api.login(demoEmail, 'Vishnu@123');
+        if (res.success && res.user) {
+          loginUser(res.user);
+          if (res.user.role === 'admin') navigate('/admin');
+          else if (res.user.role === 'officer') navigate('/officer');
+          else navigate('/student');
+          return;
+        }
+      } catch (pwErr) {
+        // Fallback to demo OTP if needed
+        await api.requestOtp(demoEmail);
+        const verifyRes = await api.verifyOtp(demoEmail, '123456');
+        if (verifyRes.user) {
+          loginUser(verifyRes.user);
+          if (verifyRes.user.role === 'admin') navigate('/admin');
+          else if (verifyRes.user.role === 'officer') navigate('/officer');
+          else navigate('/student');
+          return;
+        }
       }
     } catch (err) {
-      setError(err.message || 'Quick login failed');
+      setError(err.message || `Quick login failed for ${demoRole}.`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[#F7F8FA]">
+      <div className="w-full max-w-md space-y-5">
         
-        {/* College & Project Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-orange via-brand-purple to-brand-green items-center justify-center text-3xl shadow-md text-white mb-1">
-            🎓
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            VIT Campus Placement Tracker
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Vishnu Institute of Technology (VIT), Bhimavaram
-          </p>
-        </div>
-
-        {/* Demo Mode Banner */}
-        {demoMode && (
-          <div className="p-3.5 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-brand-orange/40 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
-            <span className="text-brand-orange font-bold text-base leading-none mt-0.5">ℹ️</span>
-            <div>
-              <p className="font-semibold text-brand-orange">Demo OTP Mode Active</p>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
-                Use OTP <span className="font-mono font-bold text-slate-900 dark:text-white bg-orange-200 dark:bg-orange-900/60 px-1.5 py-0.5 rounded">123456</span> for any login, or use the quick buttons below.
-              </p>
+        {/* Vishnu Universal Learning Brand Header */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <img
+              src="/vishnu-logo.png"
+              alt="Vishnu Universal Learning"
+              className="h-16 sm:h-20 w-auto object-contain drop-shadow-xs"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            {/* Fallback emblem if logo file is unavailable */}
+            <div className="hidden w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#E58A1F] via-[#95058A] to-[#94BC36] items-center justify-center text-3xl shadow-sm text-white">
+              🎓
             </div>
           </div>
-        )}
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#252525]">
+              Campus Placement Tracker
+            </h1>
+            <p className="text-xs text-[#666666] font-medium mt-0.5">
+              Vishnu Institute of Technology (VIT), Bhimavaram
+            </p>
+          </div>
+        </div>
 
         {/* Main Card */}
-        <Card className="shadow-lg border-slate-200 dark:border-slate-800">
+        <Card className="shadow-[0_4px_24px_rgba(0,0,0,0.06)] border-[#E5E7EB] bg-white p-6 sm:p-8 rounded-2xl">
           
           {/* Notification Messages */}
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 flex-shrink-0" />
-              <span>{error}</span>
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5 animate-fadeIn">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500" />
+              <span className="leading-relaxed">{error}</span>
             </div>
           )}
 
           {infoMessage && (
-            <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>{infoMessage}</span>
+            <div className="mb-4 p-3 rounded-xl bg-[#94BC36]/15 border border-[#94BC36]/30 text-xs text-[#547214] flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#94BC36]" />
+              <span className="leading-relaxed">{infoMessage}</span>
             </div>
           )}
 
-          {step === 1 ? (
-            /* STEP 1: Enter Email */
-            <form onSubmit={handleRequestOtp} className="space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                  College Single Sign-On
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Enter your official <span className="font-mono">@vishnu.edu.in</span> email
-                </p>
-              </div>
+          {/* Authentication Method Selector */}
+          <div className="flex rounded-xl bg-[#F7F8FA] p-1 border border-[#E5E7EB] mb-5">
+            <button
+              type="button"
+              onClick={() => { setAuthMethod('password'); setError(''); setInfoMessage(''); }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-150 ${
+                authMethod === 'password'
+                  ? 'bg-white text-[#252525] shadow-xs'
+                  : 'text-[#666666] hover:text-[#252525]'
+              }`}
+            >
+              Password Login
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMethod('otp'); setError(''); setInfoMessage(''); }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-150 ${
+                authMethod === 'otp'
+                  ? 'bg-white text-[#252525] shadow-xs'
+                  : 'text-[#666666] hover:text-[#252525]'
+              }`}
+            >
+              College OTP Login
+            </button>
+          </div>
 
+          {/* 1. PASSWORD-BASED LOGIN FORM */}
+          {authMethod === 'password' && (
+            <form onSubmit={handlePasswordLogin} className="space-y-4">
               <Input
-                label="College Email"
-                type="email"
-                placeholder="rollnumber@vishnu.edu.in"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                label="College Email or Roll Number"
+                type="text"
+                placeholder="e.g. 24pa1a0567@vishnu.edu.in or 24PA1A0567"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
-                helperText="Example: 24pa1a0567@vishnu.edu.in"
+                disabled={loading}
+                helperText="Accepted format: Roll No or @vishnu.edu.in email"
               />
 
-              <Button
-                type="submit"
-                variant="primary"
-                loading={loading}
-                className="w-full flex items-center gap-2"
-              >
-                <span>Request OTP</span>
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </form>
-          ) : (
-            /* STEP 2: Enter OTP */
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                    Enter Verification Code
-                  </h2>
+              <Input
+                label="Account Password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                helperText="Seeded default password: Vishnu@123"
+                rightElement={
                   <button
                     type="button"
-                    onClick={() => setStep(1)}
-                    className="text-xs text-brand-orange hover:underline font-medium"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="p-1 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    Change Email
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Verification OTP sent for <span className="font-semibold text-slate-800 dark:text-slate-200">{email}</span>
-                </p>
-              </div>
-
-              <Input
-                label="6-Digit OTP"
-                type="text"
-                maxLength={6}
-                placeholder="123456"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                required
-                helperText={demoMode ? "Demo code: 123456" : "Check server terminal console for generated code"}
+                }
               />
 
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setStep(1)}
-                  className="w-1/3"
-                >
-                  Back
-                </Button>
+              <div className="pt-2">
                 <Button
                   type="submit"
                   variant="primary"
                   loading={loading}
-                  className="w-2/3"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold shadow-sm"
                 >
-                  Verify & Sign In
+                  <span>Sign In</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
             </form>
           )}
 
-          {/* Quick Demo Login Buttons (Visible in DEMO_MODE) */}
-          {demoMode && (
-            <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-center">
-                Fast Demo Login (1-Click)
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoLogin('demo.student01@vishnu.edu.in')}
-                  disabled={loading}
-                  className="p-2 rounded-xl text-xs font-medium border border-sky-200 dark:border-sky-900 bg-sky-50/60 dark:bg-sky-950/30 text-sky-700 dark:text-sky-300 hover:bg-sky-100 transition-colors text-center"
-                >
-                  👤 Student
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoLogin('manikanta@vishnu.edu.in')}
-                  disabled={loading}
-                  className="p-2 rounded-xl text-xs font-medium border border-purple-200 dark:border-purple-900 bg-purple-50/60 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 transition-colors text-center"
-                >
-                  👔 Officer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoLogin('24pa1a0567@vishnu.edu.in')}
-                  disabled={loading}
-                  className="p-2 rounded-xl text-xs font-medium border border-rose-200 dark:border-rose-900 bg-rose-50/60 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100 transition-colors text-center"
-                >
-                  🛡️ Admin
-                </button>
-              </div>
+          {/* 2. OTP-BASED LOGIN FORM */}
+          {authMethod === 'otp' && (
+            <div>
+              {otpStep === 1 ? (
+                <form onSubmit={handleRequestOtp} className="space-y-4">
+                  <Input
+                    label="Official College Email"
+                    type="email"
+                    placeholder="rollnumber@vishnu.edu.in"
+                    value={otpEmail}
+                    onChange={(e) => setOtpEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                    helperText="Example: 24pa1a0567@vishnu.edu.in"
+                  />
+
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      loading={loading}
+                      disabled={loading}
+                      className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold shadow-sm"
+                    >
+                      <span>Request 6-Digit OTP</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOtp} className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-[#666666]">
+                      Sent to: <span className="font-bold text-[#252525]">{otpEmail}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setOtpStep(1); setError(''); }}
+                      className="text-xs text-[#E58A1F] hover:underline font-semibold"
+                    >
+                      Change Email
+                    </button>
+                  </div>
+
+                  <Input
+                    label="Enter 6-Digit OTP"
+                    type="text"
+                    maxLength={6}
+                    placeholder="123456"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                    required
+                    disabled={loading}
+                    helperText="Demo mode OTP: 123456"
+                  />
+
+                  <div className="flex gap-2.5 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setOtpStep(1)}
+                      className="w-1/3"
+                      disabled={loading}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      loading={loading}
+                      disabled={loading}
+                      className="w-2/3"
+                    >
+                      Verify & Sign In
+                    </Button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
+
+          {/* Quick Demo 1-Click Login Shortcuts */}
+          <div className="mt-6 pt-5 border-t border-[#E5E7EB] space-y-2.5">
+            <p className="text-[11px] font-bold text-[#666666] uppercase tracking-wider text-center">
+              Quick Test Login (1-Click)
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('demo.student01@vishnu.edu.in', 'Student')}
+                disabled={loading}
+                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-[#E58A1F] hover:bg-[#E58A1F]/5 text-[#252525] transition-all text-center shadow-2xs"
+                title="Login as sample student"
+              >
+                👤 Student
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('manikanta@vishnu.edu.in', 'Officer')}
+                disabled={loading}
+                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-[#95058A] hover:bg-[#95058A]/5 text-[#252525] transition-all text-center shadow-2xs"
+                title="Login as placement officer"
+              >
+                👔 Officer
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('24pa1a0567@vishnu.edu.in', 'Admin')}
+                disabled={loading}
+                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-rose-400 hover:bg-rose-50 text-[#252525] transition-all text-center shadow-2xs"
+                title="Login as system administrator"
+              >
+                🛡️ Admin
+              </button>
+            </div>
+          </div>
 
         </Card>
 
         {/* Footer info */}
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500">
-          Demo project. Data marked 'Sample data' is fictional.
-        </p>
+        <div className="text-center text-xs text-[#666666] space-y-1">
+          <p>
+            Vishnu Universal Learning • Training & Placement Cell
+          </p>
+          <p className="text-[11px] text-slate-400">
+            For access assistance, contact placement coordinator at admin@vishnu.edu.in
+          </p>
+        </div>
 
       </div>
     </div>

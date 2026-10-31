@@ -33,20 +33,23 @@ const app = express();
 app.use(helmet());
 
 // Cross-Origin Resource Sharing
-const allowedOrigins = [
-  CLIENT_ORIGIN,
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-].filter(Boolean);
-
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || (origin && origin.endsWith('.onrender.com'))) {
-        callback(null, true);
-      } else {
-        callback(null, false);
+      // Allow requests with no origin (like mobile apps, curl, or same-origin)
+      if (!origin) return callback(null, true);
+
+      // Allow any localhost or 127.0.0.1 port in development
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return callback(null, true);
       }
+
+      // Allow Render and configured client origin
+      if (origin === CLIENT_ORIGIN || origin.endsWith('.onrender.com')) {
+        return callback(null, true);
+      }
+
+      return callback(null, true);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

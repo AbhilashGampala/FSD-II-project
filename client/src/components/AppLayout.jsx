@@ -8,7 +8,7 @@ export const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#F7F8FA] text-[#252525]">
       <Navbar onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
       
       <div className="flex-1 flex max-w-7xl w-full mx-auto">
