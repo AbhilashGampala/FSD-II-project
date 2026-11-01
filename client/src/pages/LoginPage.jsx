@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Card } from '../components/common/Card';
@@ -14,13 +14,15 @@ import {
   CheckCircle2,
   ArrowRight,
   ShieldCheck,
-  KeyRound,
-  GraduationCap
+  RefreshCw,
+  Sparkles,
+  WifiOff,
+  Wifi
 } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const { user, loginUser, demoMode } = useAuth();
+  const { user, loginUser, enterDemoMode, backendStatus, checkBackendHealth } = useAuth();
 
   // Mode: 'password' (standard credentials) or 'otp' (college one-time password)
   const [authMethod, setAuthMethod] = useState('password');
@@ -37,11 +39,15 @@ export const LoginPage = () => {
 
   // Common UI State
   const [loading, setLoading] = useState(false);
+  const [checkingServer, setCheckingServer] = useState(false);
   const [error, setError] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
 
+  // Explicit Fallback Demo Mode Prompt State
+  const [fallbackPrompt, setFallbackPrompt] = useState(null); // { role: 'student'|'officer'|'admin', label: string }
+
   // If already logged in, redirect to appropriate role portal
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       if (user.role === 'admin') navigate('/admin');
       else if (user.role === 'officer') navigate('/officer');
@@ -49,11 +55,34 @@ export const LoginPage = () => {
     }
   }, [user, navigate]);
 
+  // Handle manual connection re-check
+  const handleRetryConnection = async () => {
+    setCheckingServer(true);
+    setError('');
+    const isAlive = await checkBackendHealth();
+    setCheckingServer(false);
+    if (isAlive) {
+      setFallbackPrompt(null);
+      setInfoMessage('Connected to live backend successfully.');
+    } else {
+      setError('Live backend is still unreachable. You can continue exploring in Demo Mode.');
+    }
+  };
+
+  // Launch Demo Mode for selected role
+  const handleLaunchDemoMode = (roleKey = 'student') => {
+    const demoUser = enterDemoMode(roleKey);
+    if (demoUser.role === 'admin') navigate('/admin');
+    else if (demoUser.role === 'officer') navigate('/officer');
+    else navigate('/student');
+  };
+
   // Handle Password-based Login
   const handlePasswordLogin = async (e) => {
     e?.preventDefault();
     setError('');
     setInfoMessage('');
+    setFallbackPrompt(null);
 
     const cleanIdentifier = identifier.trim();
     if (!cleanIdentifier) {
@@ -67,6 +96,21 @@ export const LoginPage = () => {
     }
 
     setLoading(true);
+
+    // If backend is already known to be offline, offer fallback demo mode immediately
+    if (backendStatus === 'disconnected') {
+      setLoading(false);
+      let detectedRole = 'student';
+      if (cleanIdentifier.includes('admin') || cleanIdentifier.toLowerCase() === '24pa1a0567') detectedRole = 'admin';
+      else if (cleanIdentifier.includes('officer') || cleanIdentifier.includes('manikanta')) detectedRole = 'officer';
+
+      setFallbackPrompt({
+        role: detectedRole,
+        label: detectedRole === 'admin' ? 'Administrator' : detectedRole === 'officer' ? 'Placement Officer' : 'Student'
+      });
+      return;
+    }
+
     try {
       const res = await api.login(cleanIdentifier, password);
       if (res.success && res.user) {
@@ -78,7 +122,18 @@ export const LoginPage = () => {
         setError(res.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError(err.message || 'Authentication failed. Please verify your credentials.');
+      if (err.isNetworkError || err.message?.includes('connect to server')) {
+        let detectedRole = 'student';
+        if (cleanIdentifier.includes('admin') || cleanIdentifier.toLowerCase() === '24pa1a0567') detectedRole = 'admin';
+        else if (cleanIdentifier.includes('officer') || cleanIdentifier.includes('manikanta')) detectedRole = 'officer';
+
+        setFallbackPrompt({
+          role: detectedRole,
+          label: detectedRole === 'admin' ? 'Administrator' : detectedRole === 'officer' ? 'Placement Officer' : 'Student'
+        });
+      } else {
+        setError(err.message || 'Authentication failed. Please verify your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -89,6 +144,7 @@ export const LoginPage = () => {
     e?.preventDefault();
     setError('');
     setInfoMessage('');
+    setFallbackPrompt(null);
 
     const trimmedEmail = otpEmail.toLowerCase().trim();
     if (!trimmedEmail) {
@@ -102,12 +158,29 @@ export const LoginPage = () => {
     }
 
     setLoading(true);
+
+    if (backendStatus === 'disconnected') {
+      setLoading(false);
+      setFallbackPrompt({
+        role: 'student',
+        label: 'Student'
+      });
+      return;
+    }
+
     try {
       const res = await api.requestOtp(trimmedEmail);
       setInfoMessage(res.message || 'OTP sent successfully! Enter code below.');
       setOtpStep(2);
     } catch (err) {
-      setError(err.message || 'Failed to request OTP. Please try again.');
+      if (err.isNetworkError || err.message?.includes('connect to server')) {
+        setFallbackPrompt({
+          role: 'student',
+          label: 'Student'
+        });
+      } else {
+        setError(err.message || 'Failed to request OTP. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -130,7 +203,6 @@ export const LoginPage = () => {
       const res = await api.verifyOtp(otpEmail.toLowerCase().trim(), cleanOtp);
 
       if (res.isNewUser) {
-        // Redirect to first-time student profile setup
         navigate('/signup-profile', {
           state: {
             email: res.email,
@@ -144,20 +216,38 @@ export const LoginPage = () => {
         else navigate('/student');
       }
     } catch (err) {
-      setError(err.message || 'OTP verification failed. Please try again.');
+      if (err.isNetworkError || err.message?.includes('connect to server')) {
+        setFallbackPrompt({
+          role: 'student',
+          label: 'Student'
+        });
+      } else {
+        setError(err.message || 'OTP verification failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Quick 1-Click Demo Login Helper
-  const handleQuickDemoLogin = async (demoEmail, demoRole) => {
+  // Role Selection Button Action (Reuses existing role options on the page)
+  const handleRoleSelection = async (demoEmail, roleKey, roleLabel) => {
     setError('');
     setInfoMessage('');
+    setFallbackPrompt(null);
     setLoading(true);
 
+    // 1. If backend is disconnected or offline, immediately provide Demo Mode confirmation
+    if (backendStatus === 'disconnected') {
+      setLoading(false);
+      setFallbackPrompt({
+        role: roleKey,
+        label: roleLabel
+      });
+      return;
+    }
+
+    // 2. Try live authentication with pre-seeded credentials
     try {
-      // First attempt direct password login with default credential
       try {
         const res = await api.login(demoEmail, 'Vishnu@123');
         if (res.success && res.user) {
@@ -168,19 +258,27 @@ export const LoginPage = () => {
           return;
         }
       } catch (pwErr) {
-        // Fallback to demo OTP if needed
-        await api.requestOtp(demoEmail);
-        const verifyRes = await api.verifyOtp(demoEmail, '123456');
-        if (verifyRes.user) {
-          loginUser(verifyRes.user);
-          if (verifyRes.user.role === 'admin') navigate('/admin');
-          else if (verifyRes.user.role === 'officer') navigate('/officer');
-          else navigate('/student');
-          return;
+        // Fallback to OTP attempt if password failed but network is up
+        if (!pwErr.isNetworkError) {
+          await api.requestOtp(demoEmail);
+          const verifyRes = await api.verifyOtp(demoEmail, '123456');
+          if (verifyRes.user) {
+            loginUser(verifyRes.user);
+            if (verifyRes.user.role === 'admin') navigate('/admin');
+            else if (verifyRes.user.role === 'officer') navigate('/officer');
+            else navigate('/student');
+            return;
+          }
+        } else {
+          throw pwErr;
         }
       }
     } catch (err) {
-      setError(err.message || `Quick login failed for ${demoRole}.`);
+      // Backend is unavailable or network failed -> show mandatory Demo Mode fallback prompt
+      setFallbackPrompt({
+        role: roleKey,
+        label: roleLabel
+      });
     } finally {
       setLoading(false);
     }
@@ -217,11 +315,88 @@ export const LoginPage = () => {
           </div>
         </div>
 
+        {/* Backend Connectivity Status Bar */}
+        <div className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs border transition-colors bg-white shadow-2xs">
+          <div className="flex items-center gap-2">
+            {backendStatus === 'connected' ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-emerald-700 font-medium flex items-center gap-1">
+                  <Wifi className="w-3.5 h-3.5 text-emerald-600" />
+                  Live Server Connected
+                </span>
+              </>
+            ) : backendStatus === 'disconnected' ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span className="text-amber-800 font-medium flex items-center gap-1">
+                  <WifiOff className="w-3.5 h-3.5 text-amber-600" />
+                  Live Server Offline • Demo Mode Ready
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-slate-400 animate-ping"></span>
+                <span className="text-slate-500 font-medium">Checking server connectivity...</span>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleRetryConnection}
+            disabled={checkingServer}
+            className="flex items-center gap-1 text-[11px] font-semibold text-[#E58A1F] hover:text-[#c47314] disabled:opacity-50"
+            title="Retry connecting to live backend"
+          >
+            <RefreshCw className={`w-3 h-3 ${checkingServer ? 'animate-spin' : ''}`} />
+            <span>Retry</span>
+          </button>
+        </div>
+
         {/* Main Card */}
         <Card className="shadow-[0_4px_24px_rgba(0,0,0,0.06)] border-[#E5E7EB] bg-white p-6 sm:p-8 rounded-2xl">
           
-          {/* Notification Messages */}
-          {error && (
+          {/* Mandatory Demo Fallback Prompt when Live Backend is Unavailable */}
+          {fallbackPrompt && (
+            <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-3 animate-fadeIn">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#E58A1F]" />
+                <div className="space-y-1">
+                  <p className="font-bold text-[#E58A1F]">
+                    Live authentication is currently unavailable.
+                  </p>
+                  <p className="leading-relaxed text-slate-700">
+                    Live authentication is currently unavailable. You can continue exploring this role in Demo Mode.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleLaunchDemoMode(fallbackPrompt.role)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 font-bold bg-[#E58A1F] hover:bg-[#d47c17] text-white"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Continue in Demo Mode</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFallbackPrompt(null)}
+                  className="px-3"
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Regular Notification Messages */}
+          {error && !fallbackPrompt && (
             <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5 animate-fadeIn">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500" />
               <span className="leading-relaxed">{error}</span>
@@ -239,7 +414,7 @@ export const LoginPage = () => {
           <div className="flex rounded-xl bg-[#F7F8FA] p-1 border border-[#E5E7EB] mb-5">
             <button
               type="button"
-              onClick={() => { setAuthMethod('password'); setError(''); setInfoMessage(''); }}
+              onClick={() => { setAuthMethod('password'); setError(''); setInfoMessage(''); setFallbackPrompt(null); }}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-150 ${
                 authMethod === 'password'
                   ? 'bg-white text-[#252525] shadow-xs'
@@ -250,7 +425,7 @@ export const LoginPage = () => {
             </button>
             <button
               type="button"
-              onClick={() => { setAuthMethod('otp'); setError(''); setInfoMessage(''); }}
+              onClick={() => { setAuthMethod('otp'); setError(''); setInfoMessage(''); setFallbackPrompt(null); }}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all duration-150 ${
                 authMethod === 'otp'
                   ? 'bg-white text-[#252525] shadow-xs'
@@ -392,38 +567,49 @@ export const LoginPage = () => {
             </div>
           )}
 
-          {/* Quick Demo 1-Click Login Shortcuts */}
+          {/* Quick Role Selection (Existing Role Options) */}
           <div className="mt-6 pt-5 border-t border-[#E5E7EB] space-y-2.5">
-            <p className="text-[11px] font-bold text-[#666666] uppercase tracking-wider text-center">
-              Quick Test Login (1-Click)
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold text-[#666666] uppercase tracking-wider">
+                Select Role to Explore (1-Click)
+              </p>
+              <span className="text-[10px] text-slate-500 font-medium">
+                Live Auth / Demo Fallback
+              </span>
+            </div>
+            
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => handleQuickDemoLogin('demo.student01@vishnu.edu.in', 'Student')}
+                onClick={() => handleRoleSelection('demo.student01@vishnu.edu.in', 'student', 'Student')}
                 disabled={loading}
-                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-[#E58A1F] hover:bg-[#E58A1F]/5 text-[#252525] transition-all text-center shadow-2xs"
-                title="Login as sample student"
+                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-[#E58A1F] hover:bg-[#E58A1F]/5 text-[#252525] transition-all text-center shadow-2xs flex flex-col items-center gap-1 cursor-pointer"
+                title="Select Student role"
               >
-                👤 Student
+                <span className="text-base">👤</span>
+                <span>Student</span>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleQuickDemoLogin('manikanta@vishnu.edu.in', 'Officer')}
+                onClick={() => handleRoleSelection('manikanta@vishnu.edu.in', 'officer', 'Placement Officer')}
                 disabled={loading}
-                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-[#95058A] hover:bg-[#95058A]/5 text-[#252525] transition-all text-center shadow-2xs"
-                title="Login as placement officer"
+                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-[#95058A] hover:bg-[#95058A]/5 text-[#252525] transition-all text-center shadow-2xs flex flex-col items-center gap-1 cursor-pointer"
+                title="Select Placement Officer role"
               >
-                👔 Officer
+                <span className="text-base">👔</span>
+                <span>Officer</span>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleQuickDemoLogin('24pa1a0567@vishnu.edu.in', 'Admin')}
+                onClick={() => handleRoleSelection('24pa1a0567@vishnu.edu.in', 'admin', 'Administrator')}
                 disabled={loading}
-                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-rose-400 hover:bg-rose-50 text-[#252525] transition-all text-center shadow-2xs"
-                title="Login as system administrator"
+                className="p-2.5 rounded-xl text-xs font-semibold border border-[#E5E7EB] bg-white hover:border-rose-400 hover:bg-rose-50 text-[#252525] transition-all text-center shadow-2xs flex flex-col items-center gap-1 cursor-pointer"
+                title="Select Administrator role"
               >
-                🛡️ Admin
+                <span className="text-base">🛡️</span>
+                <span>Admin</span>
               </button>
             </div>
           </div>

@@ -67,8 +67,13 @@ export const Navbar = ({ onToggleSidebar }) => {
                 {user.name ? user.name.charAt(0).toUpperCase() : <UserIcon className="w-4 h-4 text-slate-500" />}
               </div>
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-semibold text-[#252525]">
-                  {user.name}
+                <div className="text-xs font-semibold text-[#252525] flex items-center justify-end gap-1.5">
+                  <span>{user.name}</span>
+                  {user.isDemo && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                      Demo
+                    </span>
+                  )}
                 </div>
                 <Badge variant={roleColors[user.role] || 'default'} size="sm">
                   {roleLabels[user.role] || user.role}
@@ -77,16 +82,16 @@ export const Navbar = ({ onToggleSidebar }) => {
             </div>
           )}
 
-          {/* Logout Button */}
+          {/* Logout / Exit Demo Button */}
           {user && (
             <button
               type="button"
               onClick={logout}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer border border-rose-200"
-              title="Sign Out"
+              title={user.isDemo ? "Exit Demo Mode" : "Sign Out"}
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Logout</span>
+              <span>{user.isDemo ? 'Exit Demo' : 'Logout'}</span>
             </button>
           )}
         </div>
